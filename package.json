@@ -1,0 +1,20 @@
+{
+  "name": "mimi",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n web,gateway -c cyan,magenta \"npm run dev -w @mimi/web\" \"npm run dev -w @mimi/gateway\"",
+    "dev:web": "npm run dev -w @mimi/web",
+    "dev:gateway": "npm run dev -w @mimi/gateway",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "typescript": "^5.7.2"
+  }
+}
