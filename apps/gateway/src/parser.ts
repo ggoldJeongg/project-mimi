@@ -21,16 +21,21 @@ export function parseTelemetry(raw: string): Joints | null {
   //    (주의: Number("") === 0 이라, 안 거르면 0이 섞여 개수 검사를 통과할 수 있음)
   const tokens = parts.filter((t) => t !== "");
 
-  // 4) 값은 정확히 3개(J1/J2/J3). 아니면 손상 프레임 → 버림.
-  if (tokens.length !== 3) return null;
+  // 4) 로봇 텔레메트리는 "mcs;j1;j2;j3;" 형태로 맨 앞에 "mcs" 태그가 붙는다
+  //    (PROTOCOL.md §2.1). 태그를 떼어낸다. 태그 없이 "j1;j2;j3;"로 와도
+  //    (구형/시뮬 프레임) 그대로 통과시킨다.
+  const values = tokens[0] === "mcs" ? tokens.slice(1) : tokens;
 
-  // 5) 각 토큰을 숫자로 변환.
+  // 5) 값은 정확히 3개(J1/J2/J3). 아니면 손상 프레임 → 버림.
+  if (values.length !== 3) return null;
+
+  // 6) 각 토큰을 숫자로 변환.
   //    Number("2450") = 2450, Number("-725") = -725(음수 OK).
   //    Number("abc") = NaN → 숫자가 아니면 버림.
-  const raws = tokens.map(Number);
+  const raws = values.map(Number);
   if (!raws.every(Number.isFinite)) return null;
 
-  // 6) raw 는 degree×100(centi-degree)이므로 /100 하면 degree.
+  // 7) raw 는 degree×100(centi-degree)이므로 /100 하면 degree.
   //    2450/100 = 24.5, -725/100 = -7.25.
   const [j1, j2, j3] = raws.map((v) => v / 100);
   return { j1, j2, j3 };

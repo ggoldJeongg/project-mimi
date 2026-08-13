@@ -1,10 +1,9 @@
-import type { RobotState } from "@mimi/protocol";
+import { startUdp } from "./udp";
 
-// Phase 0: gateway가 살아있고, packages/protocol의 공유 타입을 import해
-// 컴파일된다는 것만 검증한다. UDP/WebSocket은 Phase 1 이후.
+// Phase 4: 실제 Robot과 UDP 양방향 연결.
+//  - 수신: 로봇 텔레메트리를 받아 파싱 로그를 찍는다.
+//  - 송신: 핸드셰이크로 내 IP를 로봇에 알려 텔레메트리를 트리거한다.
+// web의 명령을 로봇으로 넘기는 WebSocket 연결은 Phase 5.
+startUdp();
 
-const sample: RobotState = {
-  joints: { j1: 0, j2: 0, j3: 0 },
-};
-
-console.log("[gateway] alive. shared RobotState import OK:", sample);
+console.log("[gateway] alive. UDP 시작됨.");
