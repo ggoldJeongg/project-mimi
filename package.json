@@ -11,10 +11,12 @@
     "dev": "concurrently -n web,gateway -c cyan,magenta \"npm run dev -w @mimi/web\" \"npm run dev -w @mimi/gateway\"",
     "dev:web": "npm run dev -w @mimi/web",
     "dev:gateway": "npm run dev -w @mimi/gateway",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.10"
   }
 }
