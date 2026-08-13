@@ -244,26 +244,9 @@ web·gateway·robot 사이의 계약을 명시한다. **web↔gateway 타입은 
 
 모든 메시지는 공통 envelope를 갖는다.
 
-```ts
-// packages/protocol/messages.ts
-type WsMessage =
-  | { kind: "state";  payload: RobotState }     // gateway → web
-  | { kind: "command"; payload: MoveCommand }   // web → gateway
-  | { kind: "ack";    payload: { sequence: number } }
-  | { kind: "netstat"; payload: NetworkStat };  // (MVP 이후)
+```
+미정
 
-interface RobotState {
-  sequence: number;
-  timestamp: number;
-  joints: { j1: number; j2: number; j3: number };
-  status: "IDLE" | "RUNNING" | "HOLD" | "ERROR";
-}
-
-interface MoveCommand {
-  type: "MOVE" | "HOME" | "STOP" | "ESTOP";
-  sequence: number;
-  target?: { j1: number; j2: number; j3: number };
-}
 ```
 
 ### 7.2 UDP 패킷 (gateway ↔ robot)
