@@ -1,12 +1,13 @@
 import { startUdp } from "./udp";
+import { startWs } from "./ws";
 
-// Phase 4: 실제 Robot과 UDP 양방향 연결.
-//  - 수신: 로봇 텔레메트리를 받아 파싱한다(1초 집계 로그).
-//  - 송신: 핸드셰이크로 내 IP를 로봇에 알려 텔레메트리를 트리거한다.
-// web의 명령을 로봇으로 넘기는 WebSocket 연결은 Phase 5.
-const { sendCommand } = startUdp();
+// Phase 4: 실제 Robot과 UDP 양방향 연결(수신 파싱 + 핸드셰이크 송신).
+// Phase 5: WebSocket 서버를 열고, UDP로 받은 RobotState를 web으로 흘려보낸다.
+//   Robot → UDP → Gateway → [WebSocket] → Browser
+const { broadcast } = startWs();
+const { sendCommand } = startUdp(broadcast);
 
-console.log("[gateway] alive. UDP 시작됨.");
+console.log("[gateway] alive. UDP + WebSocket 시작됨.");
 
 // ── 송신 테스트(임시): Enter 누를 때마다 J1 목표각을 0° ↔ 10° 토글해 전송 ──
 // ⚠ Joint limit 검증 전이라 작은 각도로만 테스트. Phase 5에서 web 명령으로 대체.

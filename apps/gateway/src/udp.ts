@@ -3,6 +3,7 @@
 
 import dgram from "node:dgram";
 import os from "node:os";
+import type { RobotState } from "@mimi/protocol";
 import { parseTelemetry, type Joints } from "./parser";
 import { encodeCommand } from "./command";
 
@@ -26,7 +27,9 @@ function findGatewayIp(): string | undefined {
   return anyExternal?.address;
 }
 
-export function startUdp() {
+// onState: 텔레메트리를 파싱할 때마다 호출된다. index.ts가 여기에 ws의 broadcast를
+// 꽂아 web으로 흘려보낸다. udp.ts는 ws.ts를 직접 모른다(결합도↓, 테스트 쉬움).
+export function startUdp(onState?: (state: RobotState) => void) {
   const socket = dgram.createSocket("udp4");
 
   // 핸드셰이크는 로봇이 응답(첫 텔레메트리)할 때까지 반복한다.
@@ -69,7 +72,9 @@ export function startUdp() {
     }
     recvCount++;
     lastJoints = joints;
-    // Phase 5: 여기서 파싱된 joints를 WebSocket으로 web에 흘려보낸다.
+    // Phase 5: 파싱된 joints를 web으로 흘려보낸다. RobotState 모양(§7.1)으로 감싼다.
+    // 측정 우선(CLAUDE.md): 지금은 매 프레임 그대로 push. 렌더 비용을 잰 뒤에야 throttle.
+    onState?.({ joints });
   });
 
   // 1초마다 수신 집계 요약. 수신이 있을 때만 찍는다(idle 시 조용).

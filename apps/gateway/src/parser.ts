@@ -1,12 +1,10 @@
 // Robot → Gateway UDP telemetry 파서.
 // 로봇이 보내는 raw 문자열을 사람이 읽는 degree 값으로 바꾼다.
 
-/** 파싱 결과 = RobotState.joints 와 같은 모양. */
-export interface Joints {
-  j1: number;
-  j2: number;
-  j3: number;
-}
+// 파싱 결과 shape는 protocol의 단일 출처(Joints)를 재사용한다(DRY).
+// 여기서 따로 정의하면 RobotState.joints와 조용히 어긋날 수 있다.
+import type { Joints } from "@mimi/protocol";
+export type { Joints };
 
 export function parseTelemetry(raw: string): Joints | null {
   // 1) 앞뒤 공백·개행 제거. UDP 페이로드 끝에 \n 등이 붙어 올 수 있다.

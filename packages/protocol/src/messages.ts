@@ -9,10 +9,13 @@
 //  - timestamp: 지연/차트 시간축이 필요할 때. 지금은 소비처가 없다.
 //  - status   : 상태 UX(Phase 13)를 붙일 때. 지금은 표시 화면이 없다.
 
+/** 3축 관절 각도(degree). 로봇이 실제로 보내는 값. web·gateway 공용 단일 출처. */
+export interface Joints {
+  j1: number;
+  j2: number;
+  j3: number;
+}
+
 export interface RobotState {
-  joints: {
-    j1: number;
-    j2: number;
-    j3: number;
-  };
+  joints: Joints;
 }
