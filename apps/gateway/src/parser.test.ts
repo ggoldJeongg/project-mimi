@@ -22,6 +22,18 @@ test("음수 입력", () => {
   });
 });
 
+test("mcs 태그가 붙은 실제 로봇 프레임", () => {
+  expect(parseTelemetry("mcs;2450;1000;-725;")).toEqual({
+    j1: 24.5,
+    j2: 10,
+    j3: -7.25,
+  });
+});
+
+test("mcs 태그 + 개수가 안 맞으면 null", () => {
+  expect(parseTelemetry("mcs;2450;1000;")).toBeNull();
+});
+
 test("끝 세미콜론 없이 와도 파싱된다", () => {
   expect(parseTelemetry("2450;1000;-725")).toEqual({
     j1: 24.5,
