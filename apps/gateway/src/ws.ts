@@ -2,6 +2,7 @@
 // broadcast(gateway→web 현재값) + onCommand/onStop(web→gateway 명령)의 양방향 어댑터.
 
 import { WebSocketServer, WebSocket } from "ws";
+import { findJointsOutOfRange, JOINT_LIMIT_DEG } from "@mimi/protocol";
 import type { Joints, StateMessage, ClientMessage } from "@mimi/protocol";
 
 const WS_PORT = 8081;
@@ -27,10 +28,19 @@ export function startWs(handlers: WsHandlers = {}) {
         return;
       }
       switch (msg.type) {
-        case "move":
+        case "move": {
+          const outOfRange = findJointsOutOfRange(msg.joints);
+          if (outOfRange.length > 0) {
+            console.warn(
+              `[ws] 최대(최저) 각도(${JOINT_LIMIT_DEG.min}~${JOINT_LIMIT_DEG.max}°) 초과` +
+                ` [${outOfRange.join(",")}] ${JSON.stringify(msg.joints)}`,
+            );
+            break;
+          }
           console.log(`[ws] command 수신 → J1=${msg.joints.j1} J2=${msg.joints.j2} J3=${msg.joints.j3}`);
           handlers.onCommand?.(msg.joints);
           break;
+        }
         case "stop":
           console.log("[ws] STOP 수신 → 로봇 정지");
           handlers.onStop?.();

@@ -2,7 +2,24 @@
   font-family: monospace;
   padding: 24px;
   line-height: 1.6;
-  max-width: 420px;
+  max-width: 900px;
+}
+
+.layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+.viewport {
+  flex: 1;
+  min-width: 0; /* flex 아이템 기본 min-width:auto가 canvas 축소를 막는다 */
+  height: 420px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.panel {
+  width: 320px;
+  flex-shrink: 0;
 }
 
 /* 연결 상태 배지: 색은 상태에 따라 ok/warn/crit 중 하나가 붙는다. */
@@ -61,4 +78,13 @@
   background: #dc2626;
   color: #fff;
   font-weight: bold;
+}
+
+.limitHint {
+  font-weight: normal;
+  color: #6b7280;
+}
+.error {
+  margin: 8px 0 0;
+  color: #dc2626;
 }
