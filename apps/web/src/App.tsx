@@ -1,13 +1,14 @@
 import { JOINT_AXES } from "@mimi/protocol";
 import RobotView from "./RobotView";
 import TargetControl from "./TargetControl";
+import TelemetryChart from "./TelemetryChart";
 import { useRobotConnection } from "./useRobotConnection";
 import styles from "./App.module.css";
 
 const fmt = (n: number) => n.toFixed(1);
 
 export default function App() {
-  const { status, actual, move, stop } = useRobotConnection();
+  const { status, actual, samples, move, stop } = useRobotConnection();
 
   const statusClass = { CONNECTED: styles.ok, "NO DATA": styles.warn, DISCONNECTED: styles.crit }[status];
 
@@ -42,6 +43,8 @@ export default function App() {
           <TargetControl onMove={move} onStop={stop} disabled={status === "DISCONNECTED"} />
         </div>
       </div>
+
+      <TelemetryChart samples={samples} />
     </main>
   );
 }

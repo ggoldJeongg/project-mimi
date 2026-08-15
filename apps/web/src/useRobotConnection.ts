@@ -6,7 +6,15 @@ const STALE_MS = 1500; // 마지막 수신 후 이 시간 지나면 NO DATA
 const TICK_MS = 500;
 const RETRY_MS = 1000;
 
+/** 차트에 남겨둘 구간. 이보다 오래된 샘플은 버려 메모리를 묶는다. */
+export const TELEMETRY_WINDOW_MS = 10_000;
+
 export type ConnectionStatus = "CONNECTED" | "NO DATA" | "DISCONNECTED";
+
+/** 수신 시각이 찍힌 관절값. state 메시지에 시간이 없어 브라우저가 도착 시각을 찍는다. */
+export interface Sample extends Joints {
+  t: number;
+}
 
 /** gateway와의 연결을 감추고, 로봇 현재값과 명령 수단만 노출 */
 export function useRobotConnection() {
@@ -15,6 +23,7 @@ export function useRobotConnection() {
 
   const [connected, setConnected] = useState(false);
   const [actual, setActual] = useState<Joints | null>(null);
+  const [samples, setSamples] = useState<Sample[]>([]);
   const [, forceTick] = useState(0);
 
   useEffect(() => {
@@ -30,8 +39,11 @@ export function useRobotConnection() {
         try {
           const msg: StateMessage = JSON.parse(event.data);
           if (msg.type !== "state") return;
+          const t = Date.now();
           setActual(msg.joints);
-          lastRecvRef.current = Date.now();
+          // 창 밖 샘플을 여기서 버린다. 차트가 버리면 이 배열이 무한히 자란다.
+          setSamples((prev) => [...prev, { t, ...msg.joints }].filter((s) => t - s.t <= TELEMETRY_WINDOW_MS));
+          lastRecvRef.current = t;
         } catch {
           console.warn("[ws] JSON parse 실패:", event.data);
         }
@@ -76,6 +88,7 @@ export function useRobotConnection() {
   return {
     status,
     actual,
+    samples,
     move: (joints: Joints) => send({ type: "move", joints }),
     stop: () => send({ type: "stop" }),
   };
