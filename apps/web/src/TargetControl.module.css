@@ -1,0 +1,50 @@
+.section {
+  margin-top: 16px;
+}
+.title {
+  font-size: 16px;
+}
+
+/* 축 이름 · 슬라이더 · 직접입력 · 한계 표시. 슬라이더가 남는 폭 */
+.axisRow {
+  display: grid;
+  grid-template-columns: 26px 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.axisName {
+  text-transform: uppercase;
+}
+.slider {
+  width: 100%;
+  min-width: 0; /* grid 아이템 기본 min-width:auto가 슬라이더 축소를 막는다 */
+}
+.numberCell {
+  white-space: nowrap;
+}
+.input {
+  width: 52px;
+  font-family: monospace;
+  text-align: right;
+}
+.limitHint {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+}
+.stop {
+  background: #dc2626;
+  color: #fff;
+  font-weight: bold;
+}
+
+.error {
+  margin: 8px 0 0;
+  color: #dc2626;
+}
