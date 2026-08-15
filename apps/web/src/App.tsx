@@ -25,10 +25,10 @@ export default function App() {
     // text 입력이라 숫자가 아닐 수 있는데, 그것도 이 검사에서 함께 걸린다(NaN → 위반).
     const outOfRange = findJointsOutOfRange(joints);
     if (outOfRange.length > 0) {
-      const axisNames = outOfRange.join(", ").toUpperCase();
-      setInputError(
-        `${axisNames}: ${JOINT_LIMIT_DEG.min}~${JOINT_LIMIT_DEG.max}° 범위의 숫자만 보낼 수 있습니다 (전선 보호)`,
-      );
+      const detail = outOfRange
+        .map((a) => `${a.toUpperCase()} ${JOINT_LIMIT_DEG[a].min}~${JOINT_LIMIT_DEG[a].max}°`)
+        .join(", ");
+      setInputError(`${detail} 범위의 숫자만 보낼 수 있습니다`);
       return;
     }
     setInputError(null);
@@ -42,7 +42,7 @@ export default function App() {
 
       <div className={styles.layout}>
         <div className={styles.viewport}>
-          <RobotView j1={actual?.j1 ?? null} />
+          <RobotView joints={actual} />
         </div>
 
         <div className={styles.panel}>
@@ -65,12 +65,7 @@ export default function App() {
           </section>
 
           <section className={styles.section}>
-            <h2 className={styles.h2}>
-              Target (목표값 입력){" "}
-              <span className={styles.limitHint}>
-                {JOINT_LIMIT_DEG.min}~{JOINT_LIMIT_DEG.max}°
-              </span>
-            </h2>
+            <h2 className={styles.h2}>Target (목표값 입력)</h2>
             {JOINT_AXES.map((a) => (
               <label key={a} className={styles.label}>
                 <span className={styles.axisName}>{a}</span>
@@ -81,7 +76,10 @@ export default function App() {
                   onChange={(e) => setAxis(a, e.target.value)}
                   className={styles.input}
                 />{" "}
-                °
+                °{" "}
+                <span className={styles.limitHint}>
+                  {JOINT_LIMIT_DEG[a].min}~{JOINT_LIMIT_DEG[a].max}
+                </span>
               </label>
             ))}
             <div className={styles.actions}>

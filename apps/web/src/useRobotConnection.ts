@@ -4,6 +4,7 @@ import type { ClientMessage, Joints, StateMessage } from "@mimi/protocol";
 const WS_URL = "ws://localhost:8081";
 const STALE_MS = 1500; // 마지막 수신 후 이 시간 지나면 NO DATA
 const TICK_MS = 500;
+const RETRY_MS = 1000;
 
 export type ConnectionStatus = "CONNECTED" | "NO DATA" | "DISCONNECTED";
 
@@ -17,25 +18,40 @@ export function useRobotConnection() {
   const [, forceTick] = useState(0);
 
   useEffect(() => {
-    const socket = new WebSocket(WS_URL);
-    socketRef.current = socket;
+    let unmounted = false;
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
-    socket.onopen = () => setConnected(true);
-    socket.onclose = () => setConnected(false);
-    socket.onerror = () => setConnected(false);
-    socket.onmessage = (event) => {
-      try {
-        const msg: StateMessage = JSON.parse(event.data);
-        if (msg.type !== "state") return;
-        setActual(msg.joints);
-        lastRecvRef.current = Date.now();
-      } catch {
-        console.warn("[ws] JSON parse 실패:", event.data);
-      }
+    const connect = () => {
+      const socket = new WebSocket(WS_URL);
+      socketRef.current = socket;
+
+      socket.onopen = () => setConnected(true);
+      socket.onmessage = (event) => {
+        try {
+          const msg: StateMessage = JSON.parse(event.data);
+          if (msg.type !== "state") return;
+          setActual(msg.joints);
+          lastRecvRef.current = Date.now();
+        } catch {
+          console.warn("[ws] JSON parse 실패:", event.data);
+        }
+      };
+      // 연결 실패도 error 뒤에 close가 오므로 재시도는 여기 한 곳에서만 건다.
+      // gateway는 tsx watch로 돌아 저장할 때마다 재시작한다 → 재연결이 없으면 새로고침 전까지 제어 불가.
+      socket.onclose = () => {
+        setConnected(false);
+        if (!unmounted) retryTimer = setTimeout(connect, RETRY_MS);
+      };
     };
+    connect();
 
-    // StrictMode(dev)는 effect를 두 번 돌리므로 여기서 안 닫으면 좀비 연결
-    return () => socket.close();
+    // StrictMode(dev)는 effect를 두 번 돌리므로 여기서 안 닫으면 좀비 연결.
+    // unmounted를 먼저 세워야 close 핸들러가 재연결을 걸지 않는다.
+    return () => {
+      unmounted = true;
+      clearTimeout(retryTimer);
+      socketRef.current?.close();
+    };
   }, []);
 
   // 수신이 멈추면 onmessage가 안 와서 타이머로 재렌더해 staleness를 다시 계산

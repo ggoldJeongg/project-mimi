@@ -11,18 +11,26 @@ export type JointAxis = keyof Joints;
 
 export const JOINT_AXES = ["j1", "j2", "j3"] as const satisfies readonly JointAxis[];
 
-/** 관절 각도 한계(degree). 전선이 감기는 것을 막는 하드웨어 제약 */
-export const JOINT_LIMIT_DEG = { min: -180, max: 180 } as const;
+export interface JointLimit {
+  min: number;
+  max: number;
+}
+
+/**
+ * 축별 각도 한계(degree). 하드웨어 제약이라 축마다 다르다.
+ * j1·j3은 전선 감김, j2는 보드·전선 간섭으로 가동 범위가 절반이다.
+ */
+export const JOINT_LIMIT_DEG: Record<JointAxis, JointLimit> = {
+  j1: { min: -180, max: 180 },
+  j2: { min: -90, max: 90 },
+  j3: { min: -180, max: 180 },
+};
 
 export function findJointsOutOfRange(joints: Partial<Joints> | null | undefined): JointAxis[] {
   return JOINT_AXES.filter((axis) => {
     const deg = joints?.[axis];
-    return (
-      typeof deg !== "number" ||
-      !Number.isFinite(deg) ||
-      deg < JOINT_LIMIT_DEG.min ||
-      deg > JOINT_LIMIT_DEG.max
-    );
+    const limit = JOINT_LIMIT_DEG[axis];
+    return typeof deg !== "number" || !Number.isFinite(deg) || deg < limit.min || deg > limit.max;
   });
 }
 

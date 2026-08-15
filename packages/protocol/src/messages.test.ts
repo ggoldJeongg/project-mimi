@@ -6,8 +6,14 @@ describe("findJointsOutOfRange", () => {
     expect(findJointsOutOfRange({ j1: 24.5, j2: 0, j3: -90 })).toEqual([]);
   });
 
-  it("경계값 -180 / 180은 허용", () => {
-    expect(findJointsOutOfRange({ j1: -180, j2: 180, j3: 0 })).toEqual([]);
+  it("경계값은 허용 (j1·j3 ±180, j2 ±90)", () => {
+    expect(findJointsOutOfRange({ j1: -180, j2: 90, j3: 180 })).toEqual([]);
+    expect(findJointsOutOfRange({ j1: 180, j2: -90, j3: -180 })).toEqual([]);
+  });
+
+  it("j2는 ±90을 넘으면 위반 — 다른 축이면 통과할 값", () => {
+    expect(findJointsOutOfRange({ j1: 120, j2: 120, j3: 120 })).toEqual(["j2"]);
+    expect(findJointsOutOfRange({ j1: 0, j2: -90.1, j3: 0 })).toEqual(["j2"]);
   });
 
   it("한계를 넘은 축만 보고한다", () => {
