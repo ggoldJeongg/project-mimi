@@ -1,50 +1,89 @@
-.section {
-  margin-top: 16px;
-}
+/* 카드 간격은 App의 panel이 준다. 여기선 안쪽만 맞춘다. */
 .title {
   font-size: 16px;
+  margin: 0 0 12px;
+}
+.subtitle {
+  font-weight: normal;
+  font-size: 12px;
+  color: var(--muted);
 }
 
-/* 축 이름 · 슬라이더 · 직접입력 · 한계 표시. 슬라이더가 남는 폭 */
+/*
+ * 축 이름 · 슬라이더 · 직접입력 · 한계 표시.
+ * 행마다 독립된 grid라서 3·4열을 auto로 두면 "±90"이 짧은 J2 행만 열이 어긋난다.
+ * 고정폭으로 못박아 세 행의 슬라이더 끝과 입력칸이 세로로 맞도록 한다.
+ */
 .axisRow {
   display: grid;
-  grid-template-columns: 26px 1fr auto auto;
+  grid-template-columns: 24px minmax(0, 1fr) 74px 40px;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
+  gap: 10px;
+  padding: 3px 6px;
+  margin: 0 -6px 2px; /* 강조 배경이 카드 안쪽 여백까지 덮도록 */
 }
+/* 3D에서 집은 관절. 3D 강조색과 짝을 맞춰 어느 슬라이더가 그 관절인지 잇는다. */
+.selected {
+  background: #fff7ed;
+  box-shadow: inset 0 0 0 1px #fed7aa;
+  border-radius: 8px;
+}
+
 .axisName {
   text-transform: uppercase;
+  font-size: 13px;
+  color: var(--muted);
 }
+
 .slider {
   width: 100%;
   min-width: 0; /* grid 아이템 기본 min-width:auto가 슬라이더 축소를 막는다 */
+  accent-color: #2563eb;
 }
+
+/* 숫자와 단위를 한 줄에 붙여 baseline을 맞춘다. 떨어뜨리면 °가 위로 떠 보인다. */
 .numberCell {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 2px;
   white-space: nowrap;
+  font-size: 13px;
+  color: var(--muted);
 }
 .input {
-  width: 52px;
-  font-family: monospace;
+  width: 56px;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
   text-align: right;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 3px 5px;
 }
+.input:focus {
+  outline: 2px solid #93c5fd;
+  outline-offset: -1px;
+}
+
 .limitHint {
-  color: #6b7280;
+  color: var(--muted);
   font-size: 12px;
+  text-align: right;
 }
 
 .actions {
-  margin-top: 12px;
+  margin-top: 14px;
   display: flex;
   gap: 8px;
 }
 .stop {
   background: #dc2626;
-  color: #fff;
-  font-weight: bold;
 }
 
 .error {
-  margin: 8px 0 0;
-  color: #dc2626;
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: #b91c1c;
 }
