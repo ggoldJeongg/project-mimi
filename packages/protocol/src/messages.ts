@@ -7,6 +7,25 @@ export interface Joints {
   j3: number;
 }
 
+export type JointAxis = keyof Joints;
+
+export const JOINT_AXES = ["j1", "j2", "j3"] as const satisfies readonly JointAxis[];
+
+/** 관절 각도 한계(degree). 전선이 감기는 것을 막는 하드웨어 제약 */
+export const JOINT_LIMIT_DEG = { min: -180, max: 180 } as const;
+
+export function findJointsOutOfRange(joints: Partial<Joints> | null | undefined): JointAxis[] {
+  return JOINT_AXES.filter((axis) => {
+    const deg = joints?.[axis];
+    return (
+      typeof deg !== "number" ||
+      !Number.isFinite(deg) ||
+      deg < JOINT_LIMIT_DEG.min ||
+      deg > JOINT_LIMIT_DEG.max
+    );
+  });
+}
+
 // state와 command는 구조가 같아(둘 다 joints) type 태그로 구분한다(§7.1 envelope).
 
 /** gateway → web: 로봇 현재값. */
