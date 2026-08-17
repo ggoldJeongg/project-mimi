@@ -1,0 +1,37 @@
+.badge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  border-left: 4px solid currentColor; /* 색약에도 위치·두께로 구분되도록 */
+  background: var(--card);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+.icon {
+  font-size: 14px;
+  line-height: 1;
+}
+.label {
+  font-weight: bold;
+}
+.hint {
+  color: #4b5563;
+  font-size: 12px;
+}
+
+/* tone은 색을 정하고, 아이콘·텍스트가 같은 정보를 중복해서 전달한다. */
+.ok {
+  color: #15803d;
+}
+.warn {
+  color: #b45309;
+}
+.crit {
+  color: #b91c1c;
+}
+.idle {
+  color: #6b7280;
+}
