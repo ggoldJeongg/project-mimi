@@ -1,0 +1,92 @@
+.app {
+  padding: 22px;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap; /* 좁아지면 배지가 아래로 내려간다 */
+  margin-bottom: 18px;
+}
+.title {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.subtitle {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* 현재값 타일은 화면 맨 위 전체 폭. 대시보드에서 제일 먼저 읽혀야 하는 값이다. */
+.kpi {
+  margin-bottom: 16px;
+}
+
+/*
+ * 좌: 3D 위 / 차트 아래, 우: 제어 패널이 두 줄에 걸침.
+ * 패널을 세로로 늘려야 3D 오른쪽에 빈 공간이 안 남는다.
+ */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 16px;
+}
+
+.viewport {
+  grid-column: 1;
+  grid-row: 1;
+  height: 360px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+/* 내용 높이만 차지한다. 3D 높이에 맞춰 늘리면 카드 안에 빈 흰 공간이 크게 남는다. */
+.panel {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+}
+
+.chartArea {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+}
+
+@media (max-width: 900px) {
+  .app {
+    padding: 14px;
+  }
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .viewport,
+  .chartArea,
+  .panel {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .viewport {
+    height: 300px;
+  }
+}
+
+@media (max-width: 560px) {
+  .kpi > div {
+    grid-template-columns: 1fr; /* 타일이 눌리면 세로로 */
+  }
+}

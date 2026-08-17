@@ -1,0 +1,43 @@
+/* 바깥 여백은 App의 grid gap이 준다. */
+.chart {
+  margin-top: 0;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+.title {
+  font-size: 16px;
+  margin: 0;
+}
+
+.legend {
+  display: flex;
+  gap: 14px;
+  font-size: 12px;
+}
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.swatch {
+  width: 12px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+/* d3-axis는 눈금선·글씨에 currentColor를 쓴다 → color 하나로 축 전체 색이 잡힌다. */
+.svg {
+  width: 100%;
+  height: auto;
+  color: #64748b;
+  font-size: 10px;
+}
+
+.zero {
+  stroke: #cbd5e1;
+  stroke-dasharray: 3 3;
+}

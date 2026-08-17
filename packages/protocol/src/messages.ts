@@ -1,14 +1,56 @@
 // web ↔ gateway 공유 계약. 순수 TS만 (Node/브라우저 전용 API 금지).
-// Phase 0에서는 타입 공유가 실제로 동작하는지 검증하기 위한 최소 타입만 둔다.
-// 나머지(MoveCommand, WsMessage envelope 등)는 WebSocket을 붙이는 Phase 1에서 추가.
 
-export interface RobotState {
-  sequence: number;
-  timestamp: number;
-  joints: {
-    j1: number;
-    j2: number;
-    j3: number;
-  };
-  status: "IDLE" | "RUNNING" | "HOLD" | "ERROR";
+/** 3축 관절 각도(degree). web·gateway 공용 단일 출처. */
+export interface Joints {
+  j1: number;
+  j2: number;
+  j3: number;
 }
+
+export type JointAxis = keyof Joints;
+
+export const JOINT_AXES = ["j1", "j2", "j3"] as const satisfies readonly JointAxis[];
+
+export interface JointLimit {
+  min: number;
+  max: number;
+}
+
+/**
+ * 축별 각도 한계(degree). 하드웨어 제약이라 축마다 다르다.
+ * j1·j3은 전선 감김, j2는 보드·전선 간섭으로 가동 범위가 절반이다.
+ */
+export const JOINT_LIMIT_DEG: Record<JointAxis, JointLimit> = {
+  j1: { min: -180, max: 180 },
+  j2: { min: -90, max: 90 },
+  j3: { min: -180, max: 180 },
+};
+
+export function findJointsOutOfRange(joints: Partial<Joints> | null | undefined): JointAxis[] {
+  return JOINT_AXES.filter((axis) => {
+    const deg = joints?.[axis];
+    const limit = JOINT_LIMIT_DEG[axis];
+    return typeof deg !== "number" || !Number.isFinite(deg) || deg < limit.min || deg > limit.max;
+  });
+}
+
+// state와 command는 구조가 같아(둘 다 joints) type 태그로 구분한다(§7.1 envelope).
+
+/** gateway → web: 로봇 현재값. */
+export interface StateMessage {
+  type: "state";
+  joints: Joints;
+}
+
+/** web → gateway: 목표값 이동. */
+export interface CommandMessage {
+  type: "move";
+  joints: Joints;
+}
+
+/** web → gateway: 비상 정지(모터 힘 풀기, 안전). */
+export interface StopMessage {
+  type: "stop";
+}
+
+export type ClientMessage = CommandMessage | StopMessage;
