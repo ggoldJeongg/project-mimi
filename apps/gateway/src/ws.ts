@@ -31,10 +31,10 @@ export function startWs(handlers: WsHandlers = {}) {
         case "move": {
           const outOfRange = findJointsOutOfRange(msg.joints);
           if (outOfRange.length > 0) {
-            console.warn(
-              `[ws] 최대(최저) 각도(${JOINT_LIMIT_DEG.min}~${JOINT_LIMIT_DEG.max}°) 초과` +
-                ` [${outOfRange.join(",")}] ${JSON.stringify(msg.joints)}`,
-            );
+            const detail = outOfRange
+              .map((a) => `${a} ${JOINT_LIMIT_DEG[a].min}~${JOINT_LIMIT_DEG[a].max}°`)
+              .join(", ");
+            console.warn(`[ws] 최대(최저) 각도 초과 [${detail}] ${JSON.stringify(msg.joints)}`);
             break;
           }
           console.log(`[ws] command 수신 → J1=${msg.joints.j1} J2=${msg.joints.j2} J3=${msg.joints.j3}`);
