@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import type { ClientMessage, Joints, StateMessage } from "@mimi/protocol";
 import { deriveStatus, type ConnectionStatus } from "./connectionStatus";
 
-const WS_URL = "ws://localhost:8081";
+const WS_URL = import.meta.env.VITE_WS_URL ?? `ws://${location.hostname}:8081`;
+
 const TICK_MS = 500;
 const RETRY_MS = 1000;
 
