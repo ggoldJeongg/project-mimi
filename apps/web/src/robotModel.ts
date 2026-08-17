@@ -15,6 +15,12 @@ export interface Part {
   /** degree. STL이 Z-up이라 대부분 X축 -90° 보정이 들어간다. */
   rot: Vec3;
   color: number;
+  /**
+   * 3D에서 이 부품을 집었을 때 조작할 관절. 없으면 집히지 않는다(고정 베이스).
+   * 소속 그룹과 다를 수 있다 — 모터는 자기가 "구동하는" 관절에 매핑해야 직관에 맞다.
+   * 예: J2 모터는 g1에 붙어 있지만(J2가 돌아도 제자리) 집으면 J2를 조작한다.
+   */
+  pick?: JointAxis;
 }
 
 /**
@@ -30,12 +36,13 @@ export const PIVOT: Record<Exclude<GroupId, "base">, Vec3> = {
 /** 각 관절의 모터는 "고정 쪽(부모)" 그룹에 넣는다. 그 관절이 돌아도 모터는 제자리여야 한다. */
 export const PARTS: Part[] = [
   { file: "base.stl", group: "base", pos: [0, 0, 0], rot: [-90, 0, 0], color: 0x4a90e2 },
-  { file: "28bjy-48.stl", group: "base", pos: [0, 20.92, 0], rot: [0, 180, 0], color: 0xe08b2c },
-  { file: "3axis_stepmotor_robot_y.stl", group: "g1", pos: [10, 59, 8], rot: [-90, 0, 90], color: 0xc0392b },
-  { file: "28bjy-48.stl", group: "g1", pos: [10.89, 59.18, 8.1], rot: [135, 0, 270], color: 0xe08b2c },
-  { file: "3axis_stepmotor_robot_arm.stl", group: "g2", pos: [20.58, 139.52, 14.34], rot: [-90, -90, 0], color: 0xc0392b },
-  { file: "28bjy-48.stl", group: "g2", pos: [0.69, 134.72, 14.79], rot: [180, 0, 90], color: 0xe08b2c },
-  { file: "3axos_stepmotor_robot_hand.stl", group: "g3", pos: [-8.89, 134.71, 22.76], rot: [-180, 90, -90], color: 0xbdc3c7 },
+  { file: "28bjy-48.stl", group: "base", pos: [0, 20.92, 0], rot: [0, 180, 0], color: 0xe08b2c, pick: "j1" },
+  { file: "3axis_stepmotor_robot_y.stl", group: "g1", pos: [10, 59, 8], rot: [-90, 0, 90], color: 0xc0392b, pick: "j1" },
+  { file: "28bjy-48.stl", group: "g1", pos: [10.89, 59.18, 8.1], rot: [135, 0, 270], color: 0xe08b2c, pick: "j2" },
+  { file: "3axis_stepmotor_robot_arm.stl", group: "g2", pos: [20.58, 139.52, 14.34], rot: [-90, -90, 0], color: 0xc0392b, pick: "j2" },
+  { file: "28bjy-48.stl", group: "g2", pos: [0.69, 134.72, 14.79], rot: [180, 0, 90], color: 0xe08b2c, pick: "j3" },
+  // 밝은 배경에서 옅은 회색은 묻힌다 → 그리퍼만 한 단계 진하게.
+  { file: "3axos_stepmotor_robot_hand.stl", group: "g3", pos: [-8.89, 134.71, 22.76], rot: [-180, 90, -90], color: 0x94a3b8, pick: "j3" },
 ];
 
 export interface JointConfig {
@@ -45,13 +52,19 @@ export interface JointConfig {
   rotationAxis: "x" | "y" | "z";
   /**
    * 로봇의 + 방향과 Three.js 회전 + 방향이 반대인가.
-   * 세 축 모두 실물로 확인했다. CAD 뷰어의 축 설정과는 부호가 반대다.
+   * 세 축 모두 실제 로봇을 움직여 3D와 대조해 확정했다(CAD 뷰어 값과는 j1·j3이 반대).
+   * 판단은 반드시 실물 텔레메트리로 해야 한다 — 3D 드래그는 invert와 무관하게
+   * 항상 마우스를 따라가므로(드래그 각도와 포즈 변환이 역함수) 검증 근거가 못 된다.
    */
   invert: boolean;
 }
 
 export const JOINT_CONFIG: JointConfig[] = [
   { axis: "j1", group: "g1", rotationAxis: "y", invert: true },
-  { axis: "j2", group: "g2", rotationAxis: "x", invert: true },
+  { axis: "j2", group: "g2", rotationAxis: "x", invert: false },
   { axis: "j3", group: "g3", rotationAxis: "x", invert: false },
 ];
+
+/** 집은 부품의 관절로 설정을 찾을 때 쓴다. */
+export const jointConfigOf = (axis: JointAxis): JointConfig =>
+  JOINT_CONFIG.find((j) => j.axis === axis)!;
