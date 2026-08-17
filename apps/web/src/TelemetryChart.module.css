@@ -1,5 +1,6 @@
+/* 바깥 여백은 App의 grid gap이 준다. */
 .chart {
-  margin-top: 24px;
+  margin-top: 0;
 }
 
 .header {

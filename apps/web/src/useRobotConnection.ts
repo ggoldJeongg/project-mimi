@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import type { ClientMessage, Joints, StateMessage } from "@mimi/protocol";
+import { deriveStatus, type ConnectionStatus } from "./connectionStatus";
 
 const WS_URL = "ws://localhost:8081";
-const STALE_MS = 1500; // 마지막 수신 후 이 시간 지나면 NO DATA
 const TICK_MS = 500;
 const RETRY_MS = 1000;
 
 /** 차트에 남겨둘 구간. 이보다 오래된 샘플은 버려 메모리를 묶는다. */
 export const TELEMETRY_WINDOW_MS = 10_000;
 
-export type ConnectionStatus = "CONNECTED" | "NO DATA" | "DISCONNECTED";
+export type { ConnectionStatus };
 
 /** 수신 시각이 찍힌 관절값. state 메시지에 시간이 없어 브라우저가 도착 시각을 찍는다. */
 export interface Sample extends Joints {
@@ -21,7 +21,9 @@ export function useRobotConnection() {
   const socketRef = useRef<WebSocket | null>(null);
   const lastRecvRef = useRef(0);
 
-  const [connected, setConnected] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [everConnected, setEverConnected] = useState(false);
+  const [failedAttempts, setFailedAttempts] = useState(0);
   const [actual, setActual] = useState<Joints | null>(null);
   const [samples, setSamples] = useState<Sample[]>([]);
   const [, forceTick] = useState(0);
@@ -33,9 +35,19 @@ export function useRobotConnection() {
     const connect = () => {
       const socket = new WebSocket(WS_URL);
       socketRef.current = socket;
+      // 닫힌 소켓의 이벤트가 뒤늦게 도착해 새 소켓의 상태를 덮어쓰는 것을 막는다.
+      // 특히 failedAttempts가 잘못 올라가면 멀쩡한 연결이 DISCONNECTED로 표시된다.
+      const isCurrent = () => socketRef.current === socket;
 
-      socket.onopen = () => setConnected(true);
+      socket.onopen = () => {
+        if (!isCurrent()) return;
+        setOpen(true);
+        setEverConnected(true);
+        setFailedAttempts(0);
+      };
+
       socket.onmessage = (event) => {
+        if (!isCurrent()) return;
         try {
           const msg: StateMessage = JSON.parse(event.data);
           if (msg.type !== "state") return;
@@ -48,10 +60,13 @@ export function useRobotConnection() {
           console.warn("[ws] JSON parse 실패:", event.data);
         }
       };
+
       // 연결 실패도 error 뒤에 close가 오므로 재시도는 여기 한 곳에서만 건다.
       // gateway는 tsx watch로 돌아 저장할 때마다 재시작한다 → 재연결이 없으면 새로고침 전까지 제어 불가.
       socket.onclose = () => {
-        setConnected(false);
+        if (!isCurrent()) return;
+        setOpen(false);
+        setFailedAttempts((n) => n + 1);
         if (!unmounted) retryTimer = setTimeout(connect, RETRY_MS);
       };
     };
@@ -63,6 +78,7 @@ export function useRobotConnection() {
       unmounted = true;
       clearTimeout(retryTimer);
       socketRef.current?.close();
+      socketRef.current = null;
     };
   }, []);
 
@@ -72,12 +88,8 @@ export function useRobotConnection() {
     return () => clearInterval(id);
   }, []);
 
-  const stale = Date.now() - lastRecvRef.current > STALE_MS;
-  const status: ConnectionStatus = !connected
-    ? "DISCONNECTED"
-    : actual === null || stale
-      ? "NO DATA"
-      : "CONNECTED";
+  const sinceLastDataMs = lastRecvRef.current === 0 ? Infinity : Date.now() - lastRecvRef.current;
+  const status = deriveStatus({ open, everConnected, sinceLastDataMs, failedAttempts });
 
   function send(msg: ClientMessage) {
     const socket = socketRef.current;
@@ -89,6 +101,8 @@ export function useRobotConnection() {
     status,
     actual,
     samples,
+    /** 마지막 수신 후 경과(ms). 수신 이력이 없으면 Infinity. */
+    sinceLastDataMs,
     move: (joints: Joints) => send({ type: "move", joints }),
     stop: () => send({ type: "stop" }),
   };

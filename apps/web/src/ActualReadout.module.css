@@ -1,0 +1,58 @@
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.tile {
+  border-radius: var(--radius);
+  padding: 16px 18px 14px;
+  box-shadow: var(--shadow);
+  color: #0f172a;
+  transition: opacity 0.2s;
+}
+
+/* 연결이 살아있지 않을 때. 색뿐 아니라 투명도로도 알린다. */
+.stalled {
+  opacity: 0.45;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.axis {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(15, 23, 42, 0.65);
+}
+
+/* 화면의 주인공. 자릿수가 흔들려도 폭이 안 변하도록 고정폭 숫자. */
+.value {
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.unit {
+  font-size: 18px;
+  font-weight: 500;
+  margin-left: 2px;
+  color: rgba(15, 23, 42, 0.55);
+}
+
+.caption {
+  margin-top: 4px;
+  font-size: 12px;
+  color: rgba(15, 23, 42, 0.55);
+}

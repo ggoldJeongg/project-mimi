@@ -1,0 +1,47 @@
+:root {
+  /* 라이트 전용 디자인임을 선언한다. 없으면 브라우저 자동 다크 모드가 색을 뒤집는다. */
+  color-scheme: light;
+
+  --bg: #f5f6fa;
+  --card: #ffffff;
+  --line: #eceff4;
+  --text: #101828;
+  --muted: #667085;
+
+  /* 카드는 선이 아니라 그림자로 떠 보이게 한다. 선을 쓰면 화면이 답답해진다. */
+  --radius: 18px;
+  --shadow: 0 2px 12px rgba(16, 24, 40, 0.06);
+
+  /* 본문은 읽기 좋은 sans, 숫자만 고정폭. 전부 monospace면 터미널처럼 보인다. */
+  --font-sans: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}

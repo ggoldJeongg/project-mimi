@@ -1,12 +1,14 @@
 import { useEffect, useId, useRef } from "react";
 import { axisBottom, axisLeft, line, scaleLinear, select } from "d3";
-import { JOINT_AXES, type JointAxis } from "@mimi/protocol";
+import { JOINT_AXES } from "@mimi/protocol";
+import { JOINT_COLOR } from "./jointTheme";
 import { TELEMETRY_WINDOW_MS, type Sample } from "./useRobotConnection";
 import styles from "./TelemetryChart.module.css";
 
 // margin convention: 눈금 글씨는 plot 바깥에 살아야 하므로 안쪽으로 원점을 옮겨 그린다.
 const WIDTH = 640;
-const HEIGHT = 240;
+// 폭에 맞춰 늘어나므로 비율이 곧 높이다. 전체 폭을 쓰므로 납작해야 한다.
+const HEIGHT = 160;
 const MARGIN = { top: 8, right: 12, bottom: 26, left: 44 };
 const PLOT_W = WIDTH - MARGIN.left - MARGIN.right;
 const PLOT_H = HEIGHT - MARGIN.top - MARGIN.bottom;
@@ -25,11 +27,8 @@ const WINDOW_SEC = TELEMETRY_WINDOW_MS / 1000;
 // 정상 간격은 10ms(100Hz)라 200ms는 지터와 확실히 구분된다.
 const MAX_GAP_MS = 200;
 
-const LINE_COLOR: Record<JointAxis, string> = {
-  j1: "#38bdf8",
-  j2: "#fb923c",
-  j3: "#a3e635",
-};
+// 색은 KPI 타일과 공유한다(jointTheme).
+const LINE_COLOR = JOINT_COLOR;
 
 // ── 측정용(CLAUDE.md 측정 우선). 병목 위치가 정해지면 이 블록은 통째로 지운다. ──
 // scale+line만 재면 안 된다: 이 차트의 진짜 위험은 메인 스레드를 RobotView의 rAF와
