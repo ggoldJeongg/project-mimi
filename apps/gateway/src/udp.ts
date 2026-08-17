@@ -3,9 +3,8 @@
 
 import dgram from "node:dgram";
 import os from "node:os";
-import type { RobotState } from "@mimi/protocol";
 import { parseTelemetry, type Joints } from "./parser";
-import { encodeCommand } from "./command";
+import { encodeCommand, encodeStop } from "./command";
 
 const ROBOT_IP = "192.168.4.1"; // 로봇 AP의 고정 주소
 const ROBOT_PORT = 8080; // 로봇 수신 포트 (Gateway → Robot)
@@ -27,9 +26,8 @@ function findGatewayIp(): string | undefined {
   return anyExternal?.address;
 }
 
-// onState: 텔레메트리를 파싱할 때마다 호출된다. index.ts가 여기에 ws의 broadcast를
-// 꽂아 web으로 흘려보낸다. udp.ts는 ws.ts를 직접 모른다(결합도↓, 테스트 쉬움).
-export function startUdp(onState?: (state: RobotState) => void) {
+// onState: 파싱된 joints마다 호출. index.ts가 ws의 broadcast를 꽂는다(udp는 ws를 모름).
+export function startUdp(onState?: (joints: Joints) => void) {
   const socket = dgram.createSocket("udp4");
 
   // 핸드셰이크는 로봇이 응답(첫 텔레메트리)할 때까지 반복한다.
@@ -72,9 +70,9 @@ export function startUdp(onState?: (state: RobotState) => void) {
     }
     recvCount++;
     lastJoints = joints;
-    // Phase 5: 파싱된 joints를 web으로 흘려보낸다. RobotState 모양(§7.1)으로 감싼다.
+    // 파싱된 joints를 web으로 흘려보낸다(ws가 StateMessage로 감싼다).
     // 측정 우선(CLAUDE.md): 지금은 매 프레임 그대로 push. 렌더 비용을 잰 뒤에야 throttle.
-    onState?.({ joints });
+    onState?.(joints);
   });
 
   // 1초마다 수신 집계 요약. 수신이 있을 때만 찍는다(idle 시 조용).
@@ -113,7 +111,7 @@ export function startUdp(onState?: (state: RobotState) => void) {
   });
 
   // ── 송신: Gateway → Robot 목표 관절값 명령 ───────────────────
-  // Phase 5에서 WebSocket이 web의 명령을 받아 이 함수를 호출한다.
+  // WebSocket(ws.ts)이 web의 명령을 받아 이 함수를 호출한다.
   // ⚠ 안전: 실제 로봇에 붙일 땐 작은 각도부터. Joint limit 확정 전 큰 이동 금지.
   function sendCommand(joints: Joints) {
     const frame = encodeCommand(joints);
@@ -123,5 +121,15 @@ export function startUdp(onState?: (state: RobotState) => void) {
     });
   }
 
-  return { socket, sendCommand };
+  // ── 송신: Gateway → Robot 비상 정지 ─────────────────────────
+  // 모든 작동을 멈추고 모터 힘을 푼다(안전). web의 STOP 버튼이 이걸 부른다.
+  function sendStop() {
+    const frame = encodeStop();
+    socket.send(frame, ROBOT_PORT, ROBOT_IP, (err) => {
+      if (err) console.error("[udp] stop 송신 실패:", err.message);
+      else console.log(`[udp] stop → ${JSON.stringify(frame)}`);
+    });
+  }
+
+  return { socket, sendCommand, sendStop };
 }
